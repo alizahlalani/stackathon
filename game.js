@@ -22,17 +22,22 @@
     
     const game = new Phaser.Game(config);
     let controls;
-    var player;
+    let player;
     let cursors;
     let CoinLayer;
-    var score = 0;
-    var text;
+    let score = 0;
+    let coinScore = 0;
+    let text;
     let coins;
     let bombs;
     let bomb;
     let princess;
     let goombas;
     let goomba;
+    let text2;
+    let cointext;
+    let coinText;
+
     
     function preload() {
       this.load.image("tiles", "assets/tilesheet.png");
@@ -40,8 +45,9 @@
       this.load.tilemapTiledJSON("map", "assets/tilemap.json");
       this.load.image('bomb', 'assets/bomb.png');
       this.load.spritesheet('dude', 'assets/davemoves.png', { frameWidth: 26.5, frameHeight: 48 });
-      this.load.spritesheet('princess', 'assets/dave.png', { frameWidth: 32, frameHeight: 48 });
+      this.load.image('princess', 'assets/alizah.png', { frameWidth: 32, frameHeight: 48 });
       this.load.image('goomba', 'assets/enemy.png');
+      this.load.image('goomba2', 'assets/enemy2.png');
     }
     
     
@@ -93,31 +99,27 @@
         // coins.refresh();
         // coins.enableBody = true;
 
-        goombas
+        //goombas
         goombas = this.physics.add.group()
-        // this.anims.create({
-        //     key: 'walk',
-        //     frames: this.anims.generateFrameNumbers('goomba', { start: 0, end: 1 }),
-        //     frameRate: 1,
-        //     repeat: 30
-        // })
-       
-        for(let i = 0; i<30; i++){
-            goomba = goombas.create(Phaser.Math.Between(0, 4800), 250, 'goomba');
-            //goomba.anims.play('walk',false,0)
-            console.log('goomba', goomba)
+        for(let i = 0; i<15; i++){
+            goomba = goombas.create(Phaser.Math.Between(100, 4500), 250, 'goomba');
             goomba.setBounce(1);
-            goomba.setVelocity(Phaser.Math.Between(-100, 100));
+            goomba.setVelocity(Phaser.Math.Between(50, 100));
             goomba.setCollideWorldBounds(true);
-            // goomba.allowGravity = false;
+        }
+        for(let i = 0; i<15; i++){
+            goomba = goombas.create(Phaser.Math.Between(100, 4500), 225, 'goomba2');
+            goomba.setBounce(1);
+            goomba.setVelocity(Phaser.Math.Between(50, 100));
+            goomba.setCollideWorldBounds(true);
         }
 
 
         //bombs
         bombs = this.physics.add.group();
 
-        for(let i = 0; i<1; i++){
-            bomb = bombs.create(Phaser.Math.Between(80, 4500), 16, 'bomb');
+        for(let i = 0; i<10; i++){
+            bomb = bombs.create(Phaser.Math.Between(200, 4500), 16, 'bomb');
             bomb.setBounce(1);
             bomb.setCollideWorldBounds(true);
             bomb.setVelocity(Phaser.Math.Between(-100, 100), 20);
@@ -137,6 +139,7 @@
         this.physics.add.collider(bombs, GroundLayer);
         this.physics.add.collider(player, bombs, hitBomb, null, this);
         this.physics.add.collider(player, goombas, hitGoomba, null, this);
+        this.physics.add.collider(goombas, goombas);
 
        
         //camera
@@ -145,13 +148,27 @@
         this.cameras.main.startFollow(player);
         
         //score
-        text = this.add.text(580, 70, `Score: ${score}`, {
+        text = this.add.text(570, 70, `Coins: ${coinScore}x`, {
+            fontSize: '20px',
+            fill: '#ffffff'
+        });
+        text2 = this.add.text(10, 70, `Score: ${score}`, {
             fontSize: '20px',
             fill: '#ffffff'
         });
         text.setScrollFactor(0);
+        text2.setScrollFactor(0);
+        cointext = this.add.text(100, 150, "You don't have enough money. \n I don't want no scrub. \n Get all the $$$.", {
+            fontSize: '35px',
+            fill: '#db6097'})
+        cointext.visible=false;
+        cointext.setScrollFactor(0);
 
-    
+        coinText = this.add.text(100, 200, "YOU DID IT YAYYYYYYYYYYYY", {
+            fontSize: '35px',
+            fill: '#db6097'})
+        coinText.visible=false;
+        coinText.setScrollFactor(0);
     }
     
 function update(time, delta) {
@@ -171,8 +188,28 @@ function update(time, delta) {
 
             setTimeout(function(){
                 currentScene.restart()
-                score = 0
+                coinScore = 0
+                score=0
             },5000)
+        }
+
+        if (player.body.x>4650){
+            if(coinScore!==75){
+                
+                cointext.visible=true;
+                setTimeout(()=>removeText(cointext),5000)
+                 
+                
+            }else if (coinScore===75){
+                this.physics.pause()
+
+                coinText.visible=true;
+            }
+            
+        }
+
+        if (player.body.x<4700 && player.isTinted === false){
+            this.physics.resume()
         }
 
         if (cursors.up.isDown && player.body.onFloor())
@@ -204,8 +241,8 @@ function update(time, delta) {
 
 function collectCoin(player, coin) {
     coin.destroy(coin.x, coin.y); // remove the tile/coin
-    score ++; // increment the score
-    text.setText(`Score: ${score}`); // set the text to show the current score
+    coinScore ++; // increment the score
+    text.setText(`Coins: ${coinScore}x`); // set the text to show the current score
     return false;
 }
 
@@ -222,9 +259,16 @@ function hitBomb (player, bomb)
 function hitGoomba(player, goomba) {
     if (player.body.touching.down) {
         goomba.destroy();
+        score +=10;
+        text2.setText(`Score: ${score}`);
     } else{
         this.physics.pause();
         player.setTint(0xff0000);
         player.anims.play('turn');
     }
+}
+
+function removeText() {
+    console.log('cointext', cointext)
+    cointext.visible = false
 }
