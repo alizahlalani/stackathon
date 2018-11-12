@@ -37,6 +37,8 @@
     let text2;
     let cointext;
     let coinText;
+    let music;
+
 
     
     function preload() {
@@ -48,10 +50,18 @@
       this.load.image('princess', 'assets/alizah.png', { frameWidth: 32, frameHeight: 48 });
       this.load.image('goomba', 'assets/enemy.png');
       this.load.image('goomba2', 'assets/enemy2.png');
+      this.load.audio("music", "/assets/song.mp3");
     }
     
     
     function create() {
+
+        //music
+        music = this.sound.add('music', {
+            loop: true,
+        });
+        music.play();
+
         //create map
         const map = this.make.tilemap({ key: "map" });
         const tileset = map.addTilesetImage("52571", "tiles");
@@ -101,13 +111,13 @@
 
         //goombas
         goombas = this.physics.add.group()
-        for(let i = 0; i<15; i++){
+        for(let i = 0; i<10; i++){
             goomba = goombas.create(Phaser.Math.Between(100, 4500), 250, 'goomba');
             goomba.setBounce(1);
             goomba.setVelocity(Phaser.Math.Between(50, 100));
             goomba.setCollideWorldBounds(true);
         }
-        for(let i = 0; i<15; i++){
+        for(let i = 0; i<10; i++){
             goomba = goombas.create(Phaser.Math.Between(100, 4500), 225, 'goomba2');
             goomba.setBounce(1);
             goomba.setVelocity(Phaser.Math.Between(50, 100));
@@ -118,7 +128,7 @@
         //bombs
         bombs = this.physics.add.group();
 
-        for(let i = 0; i<10; i++){
+        for(let i = 0; i<5; i++){
             bomb = bombs.create(Phaser.Math.Between(200, 4500), 16, 'bomb');
             bomb.setBounce(1);
             bomb.setCollideWorldBounds(true);
@@ -204,6 +214,7 @@ function update(time, delta) {
                 this.physics.pause()
 
                 coinText.visible=true;
+                music.stop();
             }
             
         }
